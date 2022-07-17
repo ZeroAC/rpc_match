@@ -5,7 +5,8 @@ struct User {   //定义结构体 User
     2: string name,
     3: i32 score
 }
-
+//生成服务代码
+//kitex -module github.com/ZeroAC/rpc_match -service match_service  ./thrift/match_service.thrift
 service Match { //定义service服务
     /** 
      * user: 添加的用户信息

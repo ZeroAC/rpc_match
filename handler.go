@@ -38,9 +38,9 @@ func ConsumeTask() {
 func (s *MatchImpl) AddUser(ctx context.Context, user *match_service.User, info string) (resp int32, err error) {
 	fmt.Printf("add user %v\n", user)
 	messageQueue.Mu.Lock()
+	defer messageQueue.Mu.Unlock()
 	messageQueue.AddUser(user)
 	messageQueue.CH <- struct{}{}
-	messageQueue.Mu.Unlock()
 	return
 }
 
@@ -50,5 +50,6 @@ func (s *MatchImpl) RemoveUser(ctx context.Context, user *match_service.User, in
 	messageQueue.Mu.Lock()
 	defer messageQueue.Mu.Unlock()
 	messageQueue.RemoveUser(user)
+	messageQueue.CH <- struct{}{}
 	return
 }

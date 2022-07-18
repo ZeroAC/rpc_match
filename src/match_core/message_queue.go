@@ -24,7 +24,7 @@ type MessageQueue struct {
 func NewMessageQueue() *MessageQueue {
 	ans := MessageQueue{}
 	ans.Q = &myqueue.Queue[*Task]{}
-	ans.CH = make(chan struct{}, 100)
+	ans.CH = make(chan struct{}, 1000)
 	return &ans
 }
 

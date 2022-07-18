@@ -3,43 +3,33 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/ZeroAC/rpc_match/kitex_gen/match_service"
 	"github.com/ZeroAC/rpc_match/src/match_core"
-	"github.com/ZeroAC/rpc_match/src/myqueue"
 )
 
 // MatchImpl implements the last service interface defined in the IDL.
 type MatchImpl struct{}
 
 //匹配池 完成匹配操作
-var matchPool match_core.MatchPool
+var matchPool = match_core.NewMatchPool()
 
 //消息队列
-var messageQueue match_core.MessageQueue
+var messageQueue = match_core.NewMessageQueue()
 
-//消费者不断处理消息队列中的消息
 func ConsumeTask() {
-	matchPool.Users = make([]*match_service.User, 0)
-	messageQueue.Q = myqueue.NewQueue[*match_core.Task]()
-	for {
+	for ch := range messageQueue.CH {
+		fmt.Printf("ch: %v\n", ch)
 		messageQueue.Mu.Lock()
-		if messageQueue.Q.IsEmpty() {
-			fmt.Println("Pending...")
-			messageQueue.Mu.Unlock()
-			time.Sleep(time.Second)
-		} else {
-			a := messageQueue.Q.Front()
-			messageQueue.Q.Dequeue()
-			messageQueue.Mu.Unlock()
-			if a.FuncName == "add" {
-				matchPool.AddUser(a.User)
-			} else if a.FuncName == "remove" {
-				matchPool.RemoveUser(a.User.Id)
-			}
-			matchPool.MatchProcess()
+		a := messageQueue.Q.Front()
+		messageQueue.Q.Dequeue()
+		messageQueue.Mu.Unlock()
+		if a.FuncName == "add" {
+			matchPool.AddUser(a.User)
+		} else if a.FuncName == "remove" {
+			matchPool.RemoveUser(a.User.Id)
 		}
+		matchPool.MatchProcess()
 	}
 }
 
@@ -49,6 +39,7 @@ func (s *MatchImpl) AddUser(ctx context.Context, user *match_service.User, info 
 	fmt.Printf("add user %v\n", user)
 	messageQueue.Mu.Lock()
 	messageQueue.AddUser(user)
+	messageQueue.CH <- struct{}{}
 	messageQueue.Mu.Unlock()
 	return
 }

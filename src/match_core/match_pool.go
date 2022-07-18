@@ -11,6 +11,11 @@ type MatchPool struct {
 	Users []*match_service.User
 }
 
+func NewMatchPool() *MatchPool {
+	ans := MatchPool{}
+	ans.Users = make([]*match_service.User, 0)
+	return &ans
+}
 func (f *MatchPool) AddUser(user *match_service.User) {
 	f.Users = append(f.Users, user)
 
@@ -33,11 +38,10 @@ func (f *MatchPool) RemoveUser(id int32) error {
 //Matching algorithm v1.0
 //Directly let the first two match directly
 func (f *MatchPool) MatchProcess() {
-	fmt.Println("matching")
 	for len(f.Users) > 1 {
 		a, b := f.Users[0], f.Users[1]
 		f.RemoveUser(a.Id)
 		f.RemoveUser(b.Id)
-		fmt.Printf("%v %v\n matched!", a, b)
+		fmt.Printf("%v %v\n matched!\n", a, b)
 	}
 }

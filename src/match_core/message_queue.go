@@ -17,7 +17,15 @@ type Task struct {
 
 type MessageQueue struct {
 	Q  *myqueue.Queue[*Task]
+	CH chan struct{} //控制并发量
 	Mu sync.Mutex
+}
+
+func NewMessageQueue() *MessageQueue {
+	ans := MessageQueue{}
+	ans.Q = &myqueue.Queue[*Task]{}
+	ans.CH = make(chan struct{}, 100)
+	return &ans
 }
 
 //向消息队列中推入一个添加用户的操作
